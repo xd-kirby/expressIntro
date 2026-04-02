@@ -1,10 +1,30 @@
 const express = require("express");
 const app = express();
-
 const PORT = 3000;
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Hello, from the server!");
+});
+
+app.post("/users", (req, res) => {
+  console.log(req.body);
+  const { name, age, email, isAdmin } = req.body;
+  res.send(
+    `Hello ${name}, you are ${age} years old! Your email is ${email} and it is ${isAdmin ? "true" : "false"} that you are an admin.`,
+  );
+});
+
+app.post("/tasks", (req, res) => {
+  const { title, urgency } = req.body;
+  res.send(`${title} and urgency: ${urgency}`);
+});
+
+app.post("/products", (req, res) => {
+  const { name, price, inStock, brand, category } = req.body;
+  res.send(
+    `Product: ${brand} ${name}, price: ${price}, in stock: ${inStock ? "Yes" : "No"}, category: ${category}`,
+  );
 });
 
 app.get("/about", (req, res) => {
