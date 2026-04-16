@@ -59,6 +59,47 @@ app.get("/filter", (req, res) => {
   );
 });
 
+// PUT route to update a product with validation
+app.put("/product/:id", (req, res) => {
+  //req.params
+  const productID = req.params.id;
+
+  //req.body
+  const productName = req.body.productName;
+  const productPrice = req.body.productPrice;
+  const productDescription = req.body.productDescription;
+
+  if (!(typeof productName === "string")) {
+    return res.status(400).send("Invalid product name");
+  }
+  if (!(typeof productPrice === "number")) {
+    return res.status(400).send("Invalid product price");
+  }
+  if (!(typeof productDescription === "string")) {
+    return res.status(400).send("Invalid product description");
+  }
+
+  console.log(`Updating product with id ${productID}`);
+  res.send(
+    `product updated in db: ${productName}, ${productPrice}, ${productDescription}`,
+  );
+});
+
+//PUT route exercise
+app.put("/tasks/:id", (req, res) => {
+  const taskID = req.params.id;
+  const { title } = req.body.title;
+
+  if (!(typeof title === "string")) {
+    return res.status(400).send("Invalid task title");
+  }
+
+  res.status(200);
+  res.send(`Task ${taskID} updated successfully with title: ${title}`);
+});
+
+// DELETE route to delete a product
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
