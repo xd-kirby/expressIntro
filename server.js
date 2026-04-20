@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 const PORT = 3000;
+
+const tasks = [{ id: "5", title: "Sample task", urgency: "medium" }];
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -85,10 +88,10 @@ app.put("/product/:id", (req, res) => {
   );
 });
 
-//PUT route exercise
+// PUT route exercise
 app.put("/tasks/:id", (req, res) => {
   const taskID = req.params.id;
-  const { title } = req.body.title;
+  const { title } = req.body;
 
   if (!(typeof title === "string")) {
     return res.status(400).send("Invalid task title");
@@ -99,6 +102,19 @@ app.put("/tasks/:id", (req, res) => {
 });
 
 // DELETE route to delete a product
+app.delete("/tasks/:id", (req, res) => {
+  const id = req.params.id;
+  const taskIndex = tasks.findIndex((t) => t.id == id);
+
+  if (taskIndex === -1) {
+    return res.status(404).send("Task not found");
+  }
+
+  tasks.splice(taskIndex, 5);
+  res.status(200).send("Task successfully deleted");
+});
+
+//Databases (next lesson)
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
