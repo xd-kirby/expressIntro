@@ -1,120 +1,62 @@
 const express = require("express");
+const sqlite3 = require("sqlite3");
 const app = express();
 const PORT = 3000;
-
-const tasks = [{ id: "5", title: "Sample task", urgency: "medium" }];
-
 app.use(express.json());
 
+const db = new sqlite3.Database("./tasks.db");
+
+db.run(`CREATE TABLE IF NOT EXISTS tasks (
+  id INTEGER PRIMARY KEY,
+  title TEXT NOT NULL,
+  completed BOOLEAN DEFAULT FALSE
+);
+`);
+
+const productsDb = new sqlite3.Database("./products.db");
+productsDb.run(`CREATE TABLE IF NOT EXISTS products (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  inStock BOOLEAN DEFAULT FALSE
+);
+`);
+
 app.get("/", (req, res) => {
-  res.send("Hello, from the server!");
+  res.send("Hello, from the express app!");
 });
 
-app.post("/users", (req, res) => {
-  console.log(req.body);
-  const { name, age, email, isAdmin } = req.body;
-  res.send(
-    `Hello ${name}, you are ${age} years old! Your email is ${email} and it is ${isAdmin ? "true" : "false"} that you are an admin.`,
-  );
+app.get("/tasks", (req, res) => {
+  db.all("SELECT * from tasks", (error, rows) => {
+    res.json(rows);
+  });
+});
+
+app.get("/products", (req, res) => {
+  productsDb.all("SELECT * from products", (error, rows) => {
+    res.json(rows);
+  });
 });
 
 app.post("/tasks", (req, res) => {
-  const { title, urgency } = req.body;
-  res.send(`${title} and urgency: ${urgency}`);
+  const title = req.body.title;
+  const completed = req.body.completed;
+
+  db.run("INSERT INTO tasks (title, completed) VALUES (?, ?)", [
+    title,
+    completed,
+  ]);
+  res.status(201).json({ message: "Task created successfully" });
 });
 
 app.post("/products", (req, res) => {
-  const { name, price, inStock, brand, category } = req.body;
-  res.send(
-    `Product: ${brand} ${name}, price: ${price}, in stock: ${inStock ? "Yes" : "No"}, category: ${category}`,
-  );
+  const name = req.body.name;
+  const inStock = req.body.inStock;
+  productsDb.run("INSERT INTO products (name, inStock) VALUES (?, ?)", [
+    name,
+    inStock,
+  ]);
+  res.status(201).json({ message: "Product created successfully" });
 });
-
-app.get("/about", (req, res) => {
-  res.send("This is the about page.");
-});
-
-app.get("/users", (req, res) => {
-  res.send("Here are some users... Nevermind there are no users.");
-});
-
-// dynamic route with a parameter "name"
-app.get("/hello/:name", (req, res) => {
-  res.send(`Hello, ${req.params.name}!`);
-});
-
-// dynamic route with a parameter "id"
-app.get("/product/:id", (req, res) => {
-  console.log(req.params);
-  res.send(`This is the product page for product with ID: ${req.params.id}`);
-});
-
-// query parameters example: /search?q=keyword
-app.get("/search", (req, res) => {
-  console.log(req.query.q);
-  res.send(`You searched for: ${req.query.q}`);
-});
-
-// multiple query parameters example: /filter?category=electronics&price=100
-app.get("/filter", (req, res) => {
-  res.send(
-    `Filtering products by category: ${req.query.category} and is sorted by: ${req.query.price}`,
-  );
-});
-
-// PUT route to update a product with validation
-app.put("/product/:id", (req, res) => {
-  //req.params
-  const productID = req.params.id;
-
-  //req.body
-  const productName = req.body.productName;
-  const productPrice = req.body.productPrice;
-  const productDescription = req.body.productDescription;
-
-  if (!(typeof productName === "string")) {
-    return res.status(400).send("Invalid product name");
-  }
-  if (!(typeof productPrice === "number")) {
-    return res.status(400).send("Invalid product price");
-  }
-  if (!(typeof productDescription === "string")) {
-    return res.status(400).send("Invalid product description");
-  }
-
-  console.log(`Updating product with id ${productID}`);
-  res.send(
-    `product updated in db: ${productName}, ${productPrice}, ${productDescription}`,
-  );
-});
-
-// PUT route exercise
-app.put("/tasks/:id", (req, res) => {
-  const taskID = req.params.id;
-  const { title } = req.body;
-
-  if (!(typeof title === "string")) {
-    return res.status(400).send("Invalid task title");
-  }
-
-  res.status(200);
-  res.send(`Task ${taskID} updated successfully with title: ${title}`);
-});
-
-// DELETE route to delete a product
-app.delete("/tasks/:id", (req, res) => {
-  const id = req.params.id;
-  const taskIndex = tasks.findIndex((t) => t.id == id);
-
-  if (taskIndex === -1) {
-    return res.status(404).send("Task not found");
-  }
-
-  tasks.splice(taskIndex, 5);
-  res.status(200).send("Task successfully deleted");
-});
-
-//Databases (next lesson)
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
